@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library Management System</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .navbar-custom {
+            background-color: #007bff;
+        }
+        .navbar-custom .nav-link, .navbar-custom .navbar-brand {
+            color: #fff;
+        }
+        .navbar-custom .navbar-nav {
+            flex-direction: row;
+        }
+        .book-card {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px;
+            text-align: center;
+            background-color: #f8f9fa;
+        }
+        .book-card img {
+            max-width: 100px;
+            margin-bottom: 10px;
+        }
+        .books-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+       <nav class="navbar navbar-expand-lg navbar-custom" >
+    <a class="navbar-brand" href="/">EMI LIBRARY</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse ml-auto" id="navbarNav" >
+        <ul class="navbar-nav" style="margin-left: 790px">
+
+            <li class="nav-item">
+                <a class="nav-link" href="/adherents/html">Adherents</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/prets/html">Prets</a>
+            </li>
+            <li class="nav-item active">
+                        <a class="nav-link" href="{% if session.get('logged_in') %}{{ url_for('gerer_books') }}{% else %}{{ url_for('login_page') }}{% endif %}">Gérer Livres</a>
+            </li>
+            <li class="nav-item">
+                {% if session.get('logged_in') %}
+            <!-- Show logout button -->
+            <a class="nav-link"  href="/logout">Logout</a>
+        {% else %}
+            <!-- Show login button -->
+            <a class="nav-link"  href="/login"> Login</a>
+        {% endif %}
+            </li>
+        </ul>
+    </div>
+</nav>
+    </header>
+    <div class="container mt-5">
+        <h1>Gérer les Livres et les Auteurs</h1>
+        <form id="book-form">
+            <div class="form-group">
+                <label for="title">Titre du Livre</label>
+                <input type="text" class="form-control" id="title" required>
+            </div>
+            <div class="form-group">
+                <label for="author">Auteur</label>
+                <input type="text" class="form-control" id="author" required>
+            </div>
+            <div class="form-group">
+                <label for="isbn">ISBN</label>
+                <input type="text" class="form-control" id="isbn" required>
+            </div>
+            <div class="form-group">
+                <label for="image_url">URL de l'Image</label>
+                <input type="text" class="form-control" id="image_url">
+            </div>
+            <button type="submit" class="btn btn-primary">Ajouter Livre</button>
+            <button id="delete-books-btn" class="btn btn-danger">Delete All Books</button>
+
+        </form>
+        <hr>
+        <h2>Liste des Livres</h2>
+        <div class="main-content container">
+        <div class="books-grid" id="books-list">
+        </div>
+    </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            function fetchAllBooks() {
+            fetch('/api/books')
+                .then(response => response.json())
+                .then(data => {
+                    const booksList = document.getElementById('books-list');
+                    booksList.innerHTML = '';
+                    data.forEach(book => {
+                        const bookCard = document.createElement('div');
+                        bookCard.className = 'book-card col-md-3';
+                        bookCard.innerHTML = `
+                            <img src="${book.image_url}" alt="${book.title}">
+                            <p><strong>Title:</strong> ${book.title}</p>
+                            <p><strong>author:</strong> ${book.author}</p>
+                        `;
+                        booksList.appendChild(bookCard);
+                    });
+                });
+        }
+
+            $("#delete-books-btn").click(function() {
+        $.ajax({
+            url: "/api/books",
+            method: "DELETE",
+            success: function(response) {
+                alert(response.message);
+                fetchAllBooks(); // Assuming you have a function to fetch books from the server
+            },
+            error: function(error) {
+                console.error("Error deleting books:", error);
+                alert("Error deleting books");
+            }
+        });
+    });
+            $("#book-form").submit(function(event) {
+                console.log("aj")
+                event.preventDefault();
+                var bookData = {
+                    title: $("#title").val(),
+                    author: $("#author").val(),
+                    isbn: $("#isbn").val(),
+                    image_url: $("#image_url").val()
+                };
+
+                $.ajax({
+                    url: "/api/books",
+                    method: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(bookData),
+                    success: function(response) {
+                        alert(response.message);
+                        $("#book-form")[0].reset();
+                        fetchBooks();
+                    },
+                    error: function(error) {
+                        console.error("Error adding book:", error);
+                        alert("Error adding book");
+                    }
+                });
+            });
+
+            fetchAllBooks();
+        });
+        document.addEventListener('DOMContentLoaded', fetchAllBooks);
+    </script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

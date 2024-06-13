@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library Management System</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .navbar-custom {
+            background-color: #007bff;
+        }
+        .navbar-custom .nav-link, .navbar-custom .navbar-brand {
+            color: #fff;
+        }
+        .navbar-custom .navbar-nav {
+            flex-direction: row;
+        }
+        .book-card {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px;
+            text-align: center;
+            background-color: #f8f9fa;
+        }
+        .book-card img {
+            max-width: 100px;
+            margin-bottom: 10px;
+        }.book-card {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 15px;
+    margin: 10px;
+    text-align: center;
+    background-color: #f8f9fa;
+    width: calc(25% - 20px); /* Adjust the width to fit four cards in a row */
+    max-width: 250px; /* Optional: Limit the maximum width of each card */
+    box-sizing: border-box; /* Ensure padding and border are included in the width */
+}
+
+.books-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between; /* Distribute space between items */
+    margin-top: 20px;
+}
+
+/* Optional: Adjust margin to create space between cards */
+.book-card:not(:last-child) {
+    margin-right: 0;
+}
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-custom">
+            <a class="navbar-brand" href="/">EMI LIBRARY</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% if session.get('logged_in') %}{{ url_for('adherents_page') }}{% else %}{{ url_for('login_page') }}{% endif %}">Adherents</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% if session.get('logged_in') %}{{ url_for('prets') }}{% else %}{{ url_for('login_page') }}{% endif %}">Prets</a>
+                    </li>
+                    <li class="nav-item active">
+                        <a class="nav-link" href="{% if session.get('logged_in') %}{{ url_for('gerer_books') }}{% else %}{{ url_for('login_page') }}{% endif %}">Gérer Livres</a>
+                    </li>
+                    <li class="nav-item">
+                        {% if session.get('logged_in') %}
+                            <a class="nav-link" href="/logout">Logout</a>
+                        {% else %}
+                            <a class="nav-link" href="/login">Login</a>
+                        {% endif %}
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+    <div class="main-content container">
+        <div class="text-center">
+            <h1 class="mt-4">Books</h1>
+            <div class="form-group">
+                <label for="authorName">Filter by Author:</label>
+                <input type="text" id="authorName" class="form-control" placeholder="Enter author name">
+                <button class="btn btn-primary mt-2" onclick="filterBooksByAuthor()">Filter</button>
+                <button class="btn btn-secondary mt-2" onclick="fetchAllBooks()">Show All Books</button>
+            </div>
+        </div>
+        <div class="books-grid" id="books-list">
+        </div>
+    </div>
+    <script>
+        function fetchAllBooks() {
+            fetch('/api/books')
+                .then(response => response.json())
+                .then(data => {
+                    const booksList = document.getElementById('books-list');
+                    booksList.innerHTML = '';
+                    data.forEach(book => {
+                        const bookCard = document.createElement('div');
+                        bookCard.className = 'book-card col-md-3';
+                        bookCard.innerHTML = `
+                            <img src="${book.image_url}" alt="${book.title}">
+                            <p><strong>Title:</strong> ${book.title}</p>
+                            <p><strong>authors:</strong> ${book.author}</p>
+                        `;
+                        booksList.appendChild(bookCard);
+                    });
+                });
+        }
+
+        function filterBooksByAuthor() {
+    const authorName = document.getElementById('authorName').value;
+    console.log(authorName)
+
+    fetch(`/api/books`)
+        .then(response => response.json())
+        .then(data => {
+            const booksList = document.getElementById('books-list');
+            booksList.innerHTML = '';
+            data.forEach(book => {
+                console.log(book.author)
+                // Check if the author's name includes the entered string
+                if (book.author.toLowerCase().includes(authorName.toLowerCase())) {
+                    const bookCard = document.createElement('div');
+                    bookCard.className = 'book-card col-md-3';
+                    bookCard.innerHTML = `
+                        <img src="${book.image_url}" alt="${book.title}">
+                        <p><strong>Title:</strong> ${book.title}</p>
+                        <p><strong>Author:</strong> ${book.author}</p>
+                    `;
+                    booksList.appendChild(bookCard);
+                }
+            });
+        });
+}
+
+
+        document.addEventListener('DOMContentLoaded', fetchAllBooks);
+    </script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

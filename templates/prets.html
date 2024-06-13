@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library Management System</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .navbar-custom {
+            background-color: #007bff; /* Bootstrap primary blue */
+        }
+        .navbar-custom .nav-link, .navbar-custom .navbar-brand {
+            color: #fff;
+        }
+        .main-content {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background-color: #f8f9fa;
+        }
+        .main-content h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .main-content form {
+            margin-bottom: 20px;
+        }
+        .main-content .input-group {
+            margin-bottom: 15px;
+        }
+        .main-content .input-group input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        .main-content button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            border: none;
+            color: white;
+            border-radius: 5px;
+        }
+        #prets-list {
+            list-style: none;
+            padding: 0;
+        }
+        #prets-list li {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-custom" >
+    <a class="navbar-brand" href="/">EMI LIBRARY</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse ml-auto" id="navbarNav" >
+        <ul class="navbar-nav" style="margin-left: 790px">
+
+            <li class="nav-item">
+                <a class="nav-link" href="{% if session.get('logged_in') %}{{ url_for('adherents_page') }}{% else %}{{ url_for('login_page') }}{% endif %}">Adherents</a>
+            </li>
+            <li class="nav-item">
+                    <a class="nav-link" href="{% if session.get('logged_in') %}{{ url_for('prets') }}{% else %}{{ url_for('login_page') }}{% endif %}">Prets</a>
+            </li>
+            <li class="nav-item active">
+                        <a class="nav-link" href="{% if session.get('logged_in') %}{{ url_for('gerer_books') }}{% else %}{{ url_for('login_page') }}{% endif %}">Gérer Livres</a>
+            </li>
+            <li class="nav-item">
+                {% if session.get('logged_in') %}
+            <!-- Show logout button -->
+            <a class="nav-link"  href="/logout">Logout</a>
+        {% else %}
+            <!-- Show login button -->
+            <a class="nav-link"  href="/login"> Login</a>
+        {% endif %}
+            </li>
+        </ul>
+    </div>
+</nav>
+    </header>
+
+    <div class="container">
+        <div class="main-content">
+            <h1>Prets</h1>
+
+            <form id="pret-form">
+                <div class="input-group">
+                    <label for="book_id">Book ID:</label>
+                    <input type="text" id="book_id" name="book_id" placeholder="Book ID" required>
+                </div>
+                <div class="input-group">
+                    <label for="adherent_id">Adherent ID:</label>
+                    <input type="text" id="adherent_id" name="adherent_id" placeholder="Adherent ID" required>
+                </div>
+                <div class="input-group">
+                    <label for="date_pret">Date de Pret:</label>
+                    <input type="date" id="date_pret" name="date_pret" placeholder="Date de Pret" required>
+                </div>
+                <div class="input-group">
+                    <label for="date_retour">Date de Retour:</label>
+                    <input type="date" id="date_retour" name="date_retour" placeholder="Date de Retour" required>
+                </div>
+                <button type="submit">Ajouter Pret</button>
+            </form>
+
+            <ul id="prets-list"></ul>
+        </div>
+    </div>
+
+    <script>
+        function fetchAndDisplayPrets() {
+            fetch('/prets')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erreur lors de la récupération des prêts');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const pretsList = document.getElementById('prets-list');
+                    pretsList.innerHTML = '';
+                    data.forEach(pret => {
+                        const li = document.createElement('li');
+                        li.textContent = `Book ID: ${pret.book_id}, Adherent ID: ${pret.adherent_id}, Date de Pret: ${pret.date_pret}, Date de Retour: ${pret.date_retour}`;
+                        pretsList.appendChild(li);
+                    });
+                })
+                .catch(error => console.error('Erreur lors de la récupération des prêts:', error));
+        }
+
+        document.getElementById('pret-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const data = {};
+            formData.forEach((value, key) => data[key] = value);
+
+            fetch('/prets', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erreur lors de l\'ajout du prêt');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Success:', data);
+                fetchAndDisplayPrets();
+                event.target.reset(); // Reset the form after successful submission
+            })
+            .catch(error => console.error('Erreur lors de l\'ajout du prêt:', error));
+        });
+
+        // Fetch and display loans on initial page load
+        fetchAndDisplayPrets();
+    </script>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
