@@ -42,8 +42,8 @@ def authenticate_user(username, password):
 def add_user(username, password):
     with driver.session() as session:
         session.run("CREATE (:User {username: $username, password: $password})", username=username, password=password)
-#add_user("ayman","JS5")
-#add_user("lt","nadi")
+add_user("ayman","JS5")
+add_user("lt","nadi")
 
 ###################################################################################""""""""""""""""""""""
 def sync_book_to_neo4j(book_id):

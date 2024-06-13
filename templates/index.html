@@ -133,8 +133,11 @@
                     bookCard.className = 'book-card col-md-3';
                     bookCard.innerHTML = `
                         <img src="${book.image_url}" alt="${book.title}">
-                        <p><strong>Title:</strong> ${book.title}</p>
-                        <p><strong>Author:</strong> ${book.author}</p>
+                                <p><strong>Title:</strong> ${book.title}</p>
+                                <p><strong>Author:</strong> ${book.author}</p>
+                                <p><strong>Co-Author:</strong> ${book.co_author || 'N/A'}</p>
+                                <p><strong>ISBN:</strong> ${book.isbn}</p>
+                                <p><strong>Theme:</strong> ${book.theme}</p>
                     `;
                     booksList.appendChild(bookCard);
                 }
