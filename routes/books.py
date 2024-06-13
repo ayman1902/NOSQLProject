@@ -10,8 +10,10 @@ def serialize_book(book):
     serialized_book = {
         "title": book["title"],
         "author": book["author"],
+        "co_author": book.get("co_author"),
         "isbn": book["isbn"],
-        "image_url": book.get("image_url")  # Include the image_url field
+        "image_url": book.get("image_url"),
+        "theme": book["theme"]
     }
     if "_id" in book:
         serialized_book["id"] = str(book["_id"])  # Convert ObjectId to string
@@ -34,7 +36,7 @@ def create_book():
 
     book_data["_id"] = str(inserted_id)  # Convert ObjectId to string
     sync_book_to_neo4j(book_data)
-    return jsonify({"message": "Book added successfully"}), 20
+    return jsonify({"message": "Book added successfully"}), 201
 
 # This route deletes all books
 @books_bp.route('/api/books', methods=['DELETE'])

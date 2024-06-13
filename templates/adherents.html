@@ -97,99 +97,103 @@
             border-radius: 5px;
             cursor: pointer;
         }
-
-
     </style>
 </head>
 <body>
 <header>
-        <nav class="navbar navbar-expand-lg navbar-custom" >
-    <a class="navbar-brand" href="/">EMI LIBRARY</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse ml-auto" id="navbarNav" >
-        <ul class="navbar-nav" style="margin-left: 790px">
-
-            <li class="nav-item">
-                <a class="nav-link" href="/adherents/html">Adherents</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/prets/html">Prets</a>
-            </li>
-            <li class="nav-item active">
-                        <a class="nav-link" href="{% if session.get('logged_in') %}{{ url_for('gerer_books') }}{% else %}{{ url_for('login_page') }}{% endif %}">Gérer Livres</a>
-            </li>
-            <li class="nav-item">
-                {% if session.get('logged_in') %}
-            <!-- Show logout button -->
-            <a class="nav-link"  href="/logout">Logout</a>
-        {% else %}
-            <!-- Show login button -->
-            <a class="nav-link"  href="/login"> Login</a>
-        {% endif %}
-            </li>
-        </ul>
-    </div>
-</nav>
-    </header>
-    <div class="container">
-        <div class="main-content">
-            <h1>Adhérents</h1>
-            <form id="adherent-form">
-                <input type="text" id="name" placeholder="Nom" class="form-control" required>
-                <input type="email" id="email" placeholder="Email" class="form-control" required>
-                <input type="text" id="phone" placeholder="Téléphone" class="form-control" required>
-                <button type="submit" class="btn btn-primary">Ajouter Adhérent</button>
-            </form>
-            <div class="adherents-grid" id="adherents-list">
-                <!-- Les adhérents seront ajoutés ici via JavaScript -->
-            </div>
+    <nav class="navbar navbar-expand-lg navbar-custom">
+        <a class="navbar-brand" href="/">EMI LIBRARY</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse ml-auto" id="navbarNav">
+            <ul class="navbar-nav" style="margin-left: 790px">
+                <li class="nav-item">
+                    <a class="nav-link" href="/adherents/html">Adherents</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/prets/html">Prets</a>
+                </li>
+                <li class="nav-item active">
+                    <a class="nav-link" href="{% if session.get('logged_in') %}{{ url_for('gerer_books') }}{% else %}{{ url_for('login_page') }}{% endif %}">Gérer Livres</a>
+                </li>
+                <li class="nav-item">
+                    {% if session.get('logged_in') %}
+                    <!-- Show logout button -->
+                    <a class="nav-link" href="/logout">Logout</a>
+                    {% else %}
+                    <!-- Show login button -->
+                    <a class="nav-link" href="/login"> Login</a>
+                    {% endif %}
+                </li>
+            </ul>
+        </div>
+    </nav>
+</header>
+<div class="container">
+    <div class="main-content">
+        <h1>Adhérents</h1>
+        <form id="adherent-form">
+            <input type="text" id="name" placeholder="Nom" class="form-control" required>
+            <input type="email" id="email" placeholder="Email" class="form-control" required>
+            <input type="text" id="phone" placeholder="Téléphone" class="form-control" required pattern="\d{10}" title="Veuillez entrer un numéro de téléphone à 10 chiffres.">
+            <button type="submit" class="btn btn-primary">Ajouter Adhérent</button>
+        </form>
+        <div class="adherents-grid" id="adherents-list">
+            <!-- Les adhérents seront ajoutés ici via JavaScript -->
         </div>
     </div>
-    <script>
-        function fetchAdherents() {
-            fetch('/adherents')
-                .then(response => response.json())
-                .then(data => {
-                    const adherentsList = document.getElementById('adherents-list');
-                    adherentsList.innerHTML = ''; // Clear the list before adding new items
-                    data.forEach(adherent => {
-                        const div = document.createElement('div');
-                        div.className = 'adherent-card';
-                        div.innerHTML = `
-                            <p><strong>Nom:</strong> ${adherent.name}</p>
-                            <p><strong>Email:</strong> ${adherent.email}</p>
-                            <p><strong>Téléphone:</strong> ${adherent.phone}</p>
-                        `;
-                        adherentsList.appendChild(div);
-                    });
+</div>
+<script>
+    function fetchAdherents() {
+        fetch('/adherents')
+            .then(response => response.json())
+            .then(data => {
+                const adherentsList = document.getElementById('adherents-list');
+                adherentsList.innerHTML = ''; // Clear the list before adding new items
+                data.forEach(adherent => {
+                    const div = document.createElement('div');
+                    div.className = 'adherent-card';
+                    div.innerHTML = `
+                        <p><strong>Nom:</strong> ${adherent.name}</p>
+                        <p><strong>Email:</strong> ${adherent.email}</p>
+                        <p><strong>Téléphone:</strong> ${adherent.phone}</p>
+                    `;
+                    adherentsList.appendChild(div);
                 });
+            });
+    }
+
+    document.getElementById('adherent-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const phone = document.getElementById('phone').value;
+
+        // Validate phone number
+        const phonePattern = /^\d{10}$/;
+        if (!phonePattern.test(phone)) {
+            alert('Veuillez entrer un numéro de téléphone à 10 chiffres.');
+            return;
         }
 
-        document.getElementById('adherent-form').addEventListener('submit', function(event) {
-            event.preventDefault();
+        fetch('/adherents', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name, email, phone })
+        })
+        .then(response => response.json())
+        .then(() => {
+            fetchAdherents();
+            document.getElementById('adherent-form').reset();
+        })
+        .catch(error => console.error('Error adding adherent:', error));
+    });
 
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
-            const phone = document.getElementById('phone').value;
-
-            fetch('/adherents', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ name, email, phone })
-            })
-            .then(response => response.json())
-            .then(() => {
-                fetchAdherents();
-                document.getElementById('adherent-form').reset();
-            })
-            .catch(error => console.error('Error adding adherent:', error));
-        });
-
-        fetchAdherents();
-    </script>
+    fetchAdherents();
+</script>
 </body>
 </html>
