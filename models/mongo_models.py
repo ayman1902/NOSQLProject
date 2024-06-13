@@ -1,14 +1,22 @@
+from pymongo.errors import DuplicateKeyError
+
 from config import livres_collection, adherents_collection, prets_collection, users_collection
 from bson.objectid import ObjectId
 
 
 def add_book(book):
+    # Ensure unique index on ISBN
+    livres_collection.create_index([("isbn", 1)], unique=True)
+
     # Check if the book with the same title and author already exists
     if livres_collection.find_one({"title": book.get("title"), "author": book.get("author")}):
         return "Book with the same title and author already exists."
 
-    result = livres_collection.insert_one(book)
-    return result.inserted_id
+    try:
+        result = livres_collection.insert_one(book)
+        return result.inserted_id
+    except DuplicateKeyError:
+        return "A book with the same ISBN already exists."
 
 
 def add_adherent(adherent):

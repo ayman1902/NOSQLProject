@@ -6,6 +6,7 @@ MONGO_URI = "mongodb://localhost:27017/"
 client = pymongo.MongoClient(MONGO_URI)
 mongo_db = client["bibliotheque"]
 livres_collection = mongo_db["livres"]
+livres_collection.create_index([("isbn", 1)], unique=True)
 adherents_collection = mongo_db["adherents"]
 prets_collection = mongo_db["prets"]
 users_collection = mongo_db["users"]

@@ -56,39 +56,48 @@
             margin-bottom: 10px;
             background-color: #fff;
         }
+        .overdue {
+            background-color: #f8d7da; /* Bootstrap danger background color */
+            color: #721c24; /* Bootstrap danger text color */
+            border: 1px solid #f5c6cb; /* Reducing the harshness of the color with a lighter border */
+            padding: 10px;
+}
+        .on-time {
+            background-color: #d4edda; /* Bootstrap success background color */
+            color: #155724; /* Bootstrap success text color */
+        }
     </style>
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-lg navbar-custom" >
-    <a class="navbar-brand" href="/">EMI LIBRARY</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse ml-auto" id="navbarNav" >
-        <ul class="navbar-nav" style="margin-left: 790px">
-
-            <li class="nav-item">
-                <a class="nav-link" href="{% if session.get('logged_in') %}{{ url_for('adherents_page') }}{% else %}{{ url_for('login_page') }}{% endif %}">Adherents</a>
-            </li>
-            <li class="nav-item">
-                    <a class="nav-link" href="{% if session.get('logged_in') %}{{ url_for('prets') }}{% else %}{{ url_for('login_page') }}{% endif %}">Prets</a>
-            </li>
-            <li class="nav-item active">
+        <nav class="navbar navbar-expand-lg navbar-custom">
+            <a class="navbar-brand" href="/">EMI LIBRARY</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse ml-auto" id="navbarNav">
+                <ul class="navbar-nav" style="margin-left: 790px">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% if session.get('logged_in') %}{{ url_for('adherents_page') }}{% else %}{{ url_for('login_page') }}{% endif %}">Adherents</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% if session.get('logged_in') %}{{ url_for('prets') }}{% else %}{{ url_for('login_page') }}{% endif %}">Prets</a>
+                    </li>
+                    <li class="nav-item active">
                         <a class="nav-link" href="{% if session.get('logged_in') %}{{ url_for('gerer_books') }}{% else %}{{ url_for('login_page') }}{% endif %}">Gérer Livres</a>
-            </li>
-            <li class="nav-item">
-                {% if session.get('logged_in') %}
-            <!-- Show logout button -->
-            <a class="nav-link"  href="/logout">Logout</a>
-        {% else %}
-            <!-- Show login button -->
-            <a class="nav-link"  href="/login"> Login</a>
-        {% endif %}
-            </li>
-        </ul>
-    </div>
-</nav>
+                    </li>
+                    <li class="nav-item">
+                        {% if session.get('logged_in') %}
+                        <!-- Show logout button -->
+                        <a class="nav-link" href="/logout">Logout</a>
+                        {% else %}
+                        <!-- Show login button -->
+                        <a class="nav-link" href="/login"> Login</a>
+                        {% endif %}
+                    </li>
+                </ul>
+            </div>
+        </nav>
     </header>
 
     <div class="container">
@@ -98,11 +107,11 @@
             <form id="pret-form">
                 <div class="input-group">
                     <label for="book_id">Book ID:</label>
-                    <input type="text" id="book_id" name="book_id" placeholder="Book ID" required>
+                    <input type="number" id="book_id" name="book_id" placeholder="Book ID" required>
                 </div>
                 <div class="input-group">
                     <label for="adherent_id">Adherent ID:</label>
-                    <input type="text" id="adherent_id" name="adherent_id" placeholder="Adherent ID" required>
+                    <input type="number" id="adherent_id" name="adherent_id" placeholder="Adherent ID" required>
                 </div>
                 <div class="input-group">
                     <label for="date_pret">Date de Pret:</label>
@@ -134,6 +143,20 @@
                     data.forEach(pret => {
                         const li = document.createElement('li');
                         li.textContent = `Book ID: ${pret.book_id}, Adherent ID: ${pret.adherent_id}, Date de Pret: ${pret.date_pret}, Date de Retour: ${pret.date_retour}`;
+
+                        const datePret = new Date(pret.date_pret);
+                        const dateRetour = new Date(pret.date_retour);
+                        const today = new Date();
+
+                        if (dateRetour < datePret) {
+                            li.classList.add('overdue');
+                            li.textContent += ' - Date de Retour doit être après la Date de Pret';
+                        } else if (dateRetour < today) {
+                            li.classList.add('overdue');
+                        } else {
+                            li.classList.add('on-time');
+                        }
+
                         pretsList.appendChild(li);
                     });
                 })
@@ -145,6 +168,20 @@
             const formData = new FormData(event.target);
             const data = {};
             formData.forEach((value, key) => data[key] = value);
+
+            // Validate Book ID and Adherent ID to ensure they are numbers
+            if (isNaN(data.book_id) || isNaN(data.adherent_id)) {
+                alert('Book ID et Adherent ID doivent être des nombres.');
+                return;
+            }
+
+            // Validate that Date de Retour is after Date de Pret
+            const datePret = new Date(data.date_pret);
+            const dateRetour = new Date(data.date_retour);
+            if (dateRetour <= datePret) {
+                alert('Date de Retour doit être après la Date de Pret.');
+                return;
+            }
 
             fetch('/prets', {
                 method: 'POST',

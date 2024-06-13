@@ -5,6 +5,7 @@ from neo4j import GraphDatabase
 client = pymongo.MongoClient("mongodb://localhost:27017/")
 db = client["bibliotheque"]
 livres_collection = db["livres"]
+livres_collection.create_index([("isbn", 1)], unique=True)
 adherents_collection = db["adherents"]
 prets_collection = db["prets"]
 users_collection = db["users"]
@@ -70,38 +71,7 @@ def insert_example_data():
     users_collection.delete_many({})
 
     # Insérer les nouvelles données
-    livres_collection.insert_many([
-        {
-            "_id": "1",
-            "title": "Book Title 1",
-            "author": "Author Name 1",
-            "isbn": "ISBN1234567890"
-        },
-        {
-            "_id": "2",
-            "title": "Book Title 2",
-            "author": "Author Name 2",
-            "isbn": "ISBN0987654321"
-        },
-        {
-            "_id": "7",
-            "title": "Book Title 2",
-            "author": "Author Name 2",
-            "isbn": "ISBN0987654321"
-        },
-        {
-            "_id": "3",
-            "title": "Book Title 2",
-            "author": "Author Name 2",
-            "isbn": "ISBN0987654321"
-        },
-        {
-            "_id": "4",
-            "title": "Book Title 2",
-            "author": "Author Name 2",
-            "isbn": "ISBN0987654321"
-        }
-    ])
+
 
     adherents_collection.insert_many([
         {
