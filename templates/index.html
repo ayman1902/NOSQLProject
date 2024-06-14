@@ -26,29 +26,37 @@
         .book-card img {
             max-width: 100px;
             margin-bottom: 10px;
-        }.book-card {
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    padding: 15px;
-    margin: 10px;
-    text-align: center;
-    background-color: #f8f9fa;
-    width: calc(25% - 20px); /* Adjust the width to fit four cards in a row */
-    max-width: 250px; /* Optional: Limit the maximum width of each card */
-    box-sizing: border-box; /* Ensure padding and border are included in the width */
-}
-
-.books-grid {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between; /* Distribute space between items */
-    margin-top: 20px;
-}
-
-/* Optional: Adjust margin to create space between cards */
-.book-card:not(:last-child) {
-    margin-right: 0;
-}
+        }
+        .book-card {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px;
+            text-align: center;
+            background-color: #f8f9fa;
+            width: calc(25% - 20px); /* Adjust the width to fit four cards in a row */
+            max-width: 250px; /* Optional: Limit the maximum width of each card */
+            box-sizing: border-box; /* Ensure padding and border are included in the width */
+        }
+        .books-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between; /* Distribute space between items */
+            margin-top: 20px;
+        }
+        /* Optional: Adjust margin to create space between cards */
+        .book-card:not(:last-child) {
+            margin-right: 0;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .page-item.disabled .page-link {
+            pointer-events: none;
+            cursor: default;
+        }
     </style>
 </head>
 <body>
@@ -90,63 +98,97 @@
                 <button class="btn btn-secondary mt-2" onclick="fetchAllBooks()">Show All Books</button>
             </div>
         </div>
-        <div class="books-grid" id="books-list">
-        </div>
+        <div class="books-grid" id="books-list"></div>
+        <nav>
+            <ul class="pagination" id="pagination">
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" tabindex="-1">Previous</a>
+                </li>
+                <li class="page-item"><a class="page-link" href="#">1</a></li>
+                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                <li class="page-item">
+                    <a class="page-link" href="#">Next</a>
+                </li>
+            </ul>
+        </nav>
     </div>
     <script>
-        function fetchAllBooks() {
-            fetch('/api/books')
+        let currentPage = 1;
+        const booksPerPage = 10;
+
+        function fetchBooks(page) {
+            currentPage = page;
+            fetch(`/api/books?page=${page}&limit=${booksPerPage}`)
                 .then(response => response.json())
                 .then(data => {
                     const booksList = document.getElementById('books-list');
                     booksList.innerHTML = '';
-                    data.forEach(book => {
+                    data.books.forEach(book => {
                         const bookCard = document.createElement('div');
                         bookCard.className = 'book-card col-md-3';
                         bookCard.innerHTML = `
                             <img src="${book.image_url}" alt="${book.title}">
+                            <p><strong>Title:</strong> ${book.title}</p>
+                            <p><strong>Author:</strong> ${book.author}</p>
+                            <p><strong>Co-Author:</strong> ${book.co_author || ''}</p>
+                            <p><strong>ISBN:</strong> ${book.isbn}</p>
+                            <p><strong>Theme:</strong> ${book.theme || ''}</p>
+                        `;
+                        booksList.appendChild(bookCard);
+                    });
+                    renderPagination(data.totalPages);
+                });
+        }
+
+        function filterBooksByAuthor() {
+            const authorName = document.getElementById('authorName').value;
+            fetch(`/api/books?page=${currentPage}&limit=${booksPerPage}`)
+                .then(response => response.json())
+                .then(data => {
+                    const booksList = document.getElementById('books-list');
+                    booksList.innerHTML = '';
+                    data.books.forEach(book => {
+                        if (book.author.toLowerCase().includes(authorName.toLowerCase())) {
+                            const bookCard = document.createElement('div');
+                            bookCard.className = 'book-card col-md-3';
+                            bookCard.innerHTML = `
+                                <img src="${book.image_url}" alt="${book.title}">
                                 <p><strong>Title:</strong> ${book.title}</p>
                                 <p><strong>Author:</strong> ${book.author}</p>
                                 <p><strong>Co-Author:</strong> ${book.co_author || ''}</p>
                                 <p><strong>ISBN:</strong> ${book.isbn}</p>
                                 <p><strong>Theme:</strong> ${book.theme || ''}</p>
-                        `;
-                        booksList.appendChild(bookCard);
+                            `;
+                            booksList.appendChild(bookCard);
+                        }
                     });
                 });
         }
 
-        function filterBooksByAuthor() {
-    const authorName = document.getElementById('authorName').value;
-    console.log(authorName)
+        function renderPagination(totalPages) {
+            const pagination = document.getElementById('pagination');
+            pagination.innerHTML = '';
 
-    fetch(`/api/books`)
-        .then(response => response.json())
-        .then(data => {
-            const booksList = document.getElementById('books-list');
-            booksList.innerHTML = '';
-            data.forEach(book => {
-                console.log(book.author)
-                // Check if the author's name includes the entered string
-                if (book.author.toLowerCase().includes(authorName.toLowerCase())) {
-                    const bookCard = document.createElement('div');
-                    bookCard.className = 'book-card col-md-3';
-                    bookCard.innerHTML = `
-                        <img src="${book.image_url}" alt="${book.title}">
-                                <p><strong>Title:</strong> ${book.title}</p>
-                                <p><strong>Author:</strong> ${book.author}</p>
-                                <p><strong>Co-Author:</strong> ${book.co_author || 'N/A'}</p>
-                                <p><strong>ISBN:</strong> ${book.isbn}</p>
-                                <p><strong>Theme:</strong> ${book.theme}</p>
-                    `;
-                    booksList.appendChild(bookCard);
-                }
-            });
-        });
-}
+            const prevPageItem = document.createElement('li');
+            prevPageItem.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+            prevPageItem.innerHTML = `<a class="page-link" href="#" tabindex="-1" onclick="fetchBooks(${currentPage - 1})">Previous</a>`;
+            pagination.appendChild(prevPageItem);
 
+            for (let i = 1; i <= totalPages; i++) {
+                const pageItem = document.createElement('li');
+                pageItem.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                pageItem.innerHTML = `<a class="page-link" href="#" onclick="fetchBooks(${i})">${i}</a>`;
+                pagination.appendChild(pageItem);
+            }
 
-        document.addEventListener('DOMContentLoaded', fetchAllBooks);
+            const nextPageItem = document.createElement('li');
+            nextPageItem.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            nextPageItem.innerHTML = `<a class="page-link" href="#" onclick="fetchBooks(${currentPage + 1})">Next</a>`;
+            pagination.appendChild(nextPageItem);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => fetchBooks(currentPage));
     </script>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>

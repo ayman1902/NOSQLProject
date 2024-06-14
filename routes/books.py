@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, render_template
-from models.mongo_models import add_book, get_all_books, delete_all_books
+from models.mongo_models import add_book, get_all_books, delete_all_books, get_books_count
 from models.neo4j_models import sync_book_to_neo4j
 from bson import ObjectId  # Add this import
 
@@ -22,9 +22,26 @@ def serialize_book(book):
 # This route returns JSON data
 @books_bp.route('/api/books', methods=['GET'])
 def get_books():
-    books = get_all_books()
-    serialized_books = [serialize_book(book) for book in books]
-    return jsonify(serialized_books)
+    try:
+        page = int(request.args.get('page', 1))
+        limit = int(request.args.get('limit', 10))
+        skip = (page - 1) * limit
+
+        books = get_all_books(skip=skip, limit=limit)
+        serialized_books = [serialize_book(book) for book in books]
+
+        # Get the total count of books
+        total_books = get_books_count()
+        total_pages = (total_books + limit - 1) // limit
+
+        return jsonify({
+            "books": serialized_books,
+            "total_books": total_books,
+            "total_pages": total_pages,
+            "current_page": page
+        })
+    except ValueError:
+        return jsonify({"message": "Invalid page or limit value"}), 400
 
 # This route adds a new book
 @books_bp.route('/api/books', methods=['POST'])
