@@ -1,5 +1,5 @@
 # Système de Gestion de Bibliothèque
-<img width="960" alt="image" src="https://github.com/ayman1902/NOSQLProject/assets/49163010/55db5a1d-4487-4eaa-b04b-8038842c73ce">
+![image](https://github.com/ayman1902/NOSQLProject/assets/49163010/c04147e6-d18b-4192-b42a-91379fbb2499)
 
 
 Ce projet est un système de gestion de bibliothèque construit avec Python, Flask, Neo4j, et Docker Compose.
@@ -12,6 +12,9 @@ Ce projet est un système de gestion de bibliothèque construit avec Python, Fla
 - Ajouter des adhérents
 - Supprimer tous les livres.
 - Déploiement avec Docker Compose.
+
+## Architecture
+![image](https://github.com/ayman1902/NOSQLProject/assets/49163010/29d3a473-0417-4d85-9706-b3459fe4ca69)
 
 ## Prérequis
 
