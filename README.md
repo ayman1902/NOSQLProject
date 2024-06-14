@@ -21,6 +21,11 @@ Ce projet est un système de gestion de bibliothèque construit avec Python, Fla
 Avant de commencer, assurez-vous d'avoir installé les éléments suivants sur votre système :
 - Docker
 - Docker Compose
+- Flask
+
+## Authentification
+username:ayman
+password:JS5
 
 ## Installation et Configuration
 
